@@ -1,8 +1,2 @@
 // List of categories for blog posts
-export const CATEGORIES = [
-	'おすすめ商品'
-	// 'Category 2',
-	// 'Category 3',
-	// 'Category 4',
-	// 'Category 5'
-] as const
+export const CATEGORIES = ['おすすめ商品', 'トレーニング知識', '食事知識', 'お知らせ'] as const
