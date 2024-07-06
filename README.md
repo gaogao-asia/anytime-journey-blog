@@ -8,8 +8,8 @@
  ⭐ Leave a star if you like this project! ⭐️
 </h3>
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdanielcgilibert%2Fblog-template)
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/danielcgilibert/blog-template)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fgaogao-asia%2Fanytime-journey-blog)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/gaogao-asia/anytime-journey-blog)
 
 </div>
 
@@ -31,10 +31,10 @@
 
 ## 💻 Demo
 
-Check out the [Demo](https://blog-template-gray.vercel.app/), hosted on Vercel
+Check out the [Demo](https://tranquil-snickerdoodle-bbcc82.netlify.app/), hosted on Vercel
 <br/>
 
-https://github.com/danielcgilibert/blog-template/assets/44746462/56b8399e-cc5b-45a8-b9d2-d69833ecadb1
+https://github.com/gaogao-asia/anytime-journey-blog/assets/44746462/56b8399e-cc5b-45a8-b9d2-d69833ecadb1
 
 ## 🦙 Tina CMS
 
@@ -46,7 +46,7 @@ If you decide to use Tina, it's not necessary to add any properties to the Markd
 
 Example:
 
-https://github.com/danielcgilibert/blog-template/assets/44746462/51ae324c-d383-40be-9b16-db159d1af15d
+https://github.com/gaogao-asia/anytime-journey-blog/assets/44746462/51ae324c-d383-40be-9b16-db159d1af15d
 
 The documentation for Tina CMS can be found [here](https://tina.io/docs/)
 
@@ -55,7 +55,7 @@ The documentation for Tina CMS can be found [here](https://tina.io/docs/)
 ## 💪 Features:
 
 <p align="center">
-  <a href="https://pagespeed.web.dev/analysis/https-blog-template-gray-vercel-app/7ovjfewos9?form_factor=mobile">
+  <a href="https://pagespeed.web.dev/analysis/https-anytime-journey-blog-gray-vercel-app/7ovjfewos9?form_factor=mobile">
     <img width="510" alt="openblog Lighthouse Score" src="public/openblog-lighthouse-score.svg">
   <a>
 </p>
@@ -107,10 +107,10 @@ The documentation for Tina CMS can be found [here](https://tina.io/docs/)
 - [Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss).
 - [Astro](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 
-1. Clone or [fork](https://github.com/danielcgilibert/blog-template/fork) the repository:
+1. Clone or [fork](https://github.com/gaogao-asia/anytime-journey-blog/fork) the repository:
 
 ```bash
-git@github.com:danielcgilibert/blog-template.git
+git@github.com:gaogao-asia/anytime-journey-blog.git
 ```
 
 2. Install dependencies:
@@ -208,6 +208,6 @@ All commands are run from the root of the project, from a terminal:
 
 ## 👋 Contributors
 
-<a href="https://github.com/danielcgilibert/blog-template/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=danielcgilibert/blog-template" />
+<a href="https://github.com/gaogao-asia/anytime-journey-blog/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=gaogao-asia/anytime-journey-blog" />
 </a>
