@@ -1,0 +1,32 @@
+---
+// placement: inline — MDX 本文に書ける文脈型カード
+// 例: <AppCta text="このメニューをアプリで記録する" />
+import AppLink from '@/components/cta/AppLink'
+import AppLogo from '@/components/cta/AppLogo'
+
+interface Props {
+	text?: string
+	label?: string
+}
+const { text = 'ジム通いを Fitness Journey で記録する', label = 'アプリを開く' } = Astro.props
+---
+
+<aside
+	class='not-prose my-8 flex flex-col gap-3 rounded-xl border-l-4 border-accent bg-accent/5 p-4 dark:bg-accent/10 sm:flex-row sm:items-center sm:gap-4'
+>
+	<div class='flex min-w-0 flex-1 items-center gap-3'>
+		<AppLogo size={44} />
+		<p class='min-w-0 text-base font-bold leading-snug'>
+			{text}
+			<span class='block text-xs font-medium text-gray-600 dark:text-gray-300'
+				>Fitness Journey（無料）</span
+			>
+		</p>
+	</div>
+	<AppLink
+		placement='inline'
+		class='shrink-0 rounded-full bg-accent px-5 py-2.5 text-center text-sm font-bold text-white transition-colors hover:bg-accent-dark'
+	>
+		{label} →
+	</AppLink>
+</aside>

@@ -1,0 +1,36 @@
+---
+// アプリへの導線リンク。store='auto' は PC では LP、スマホでは OS に合うストアへ送る(CtaScripts が href を差し替える)
+import { appLinks, pageSlug, type Placement } from '@/utils/storeLinks'
+
+interface Props {
+	placement: Placement
+	store?: 'auto' | 'ios' | 'android'
+	slug?: string
+	class?: string
+	[key: string]: any
+}
+
+const {
+	placement,
+	store = 'auto',
+	slug = pageSlug(Astro.url.pathname),
+	class: className,
+	...rest
+} = Astro.props
+const links = appLinks(placement, slug)
+const auto = store === 'auto'
+---
+
+<a
+	href={auto ? links.lp : links[store]}
+	target='_blank'
+	rel='noopener'
+	data-app-cta
+	data-placement={placement}
+	data-slug={slug}
+	data-store={auto ? 'lp' : store}
+	data-ios={auto ? links.ios : undefined}
+	data-android={auto ? links.android : undefined}
+	class={className}
+	{...rest}><slot /></a
+>

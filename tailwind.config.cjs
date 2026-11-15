@@ -7,7 +7,8 @@ module.exports = {
 	theme: {
 		extend: {
 			colors: {
-				white: '#f8f9fa'
+				white: '#f8f9fa',
+				accent: { DEFAULT: '#FC5304', dark: '#D94600' }
 			},
 			fontFamily: {
 				body: ['Manrope', ...defaultTheme.fontFamily.sans]

@@ -1,24 +1,9 @@
 {
-	"name": "blog-template",
+	"name": "fitness-journey-blog",
 	"type": "module",
 	"version": "1.1.0",
-	"description": "A template for creating a blog with Astro",
-	"author": "danielcgilibert",
+	"description": "Fitness Journey ブログ (Astro)",
 	"license": "GPL-3.0-only",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/danielcgilibert/blog-template"
-	},
-	"keywords": [
-		"astro",
-		"astrojs",
-		"astro-template",
-		"astro-blog",
-		"astro-b"
-	],
-	"bugs": {
-		"url": "https://github.com/danielcgilibert/blog-template/issues"
-	},
 	"scripts": {
 		"dev": "npx tinacms dev -c \"astro dev\"",
 		"start": "astro dev",
@@ -34,8 +19,10 @@
 	},
 	"dependencies": {
 		"@astrojs/rss": "4.0.1",
+		"@resvg/resvg-js": "^2.6.2",
 		"astro": "4.0.8",
-		"astro-font": "^0.0.72"
+		"astro-font": "^0.0.72",
+		"satori": "^0.63.2"
 	},
 	"devDependencies": {
 		"@astrojs/mdx": "2.0.3",

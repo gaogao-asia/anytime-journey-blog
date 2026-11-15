@@ -5,27 +5,62 @@ import BaseLayout from '@/layouts/BaseLayout'
 import Tag from '@/components/Tag'
 import type { MarkdownHeading } from 'astro'
 import { Image } from 'astro:assets'
+import CtaTop from '@/components/cta/CtaTop'
+import { siteConfig } from '@/data/site.config'
+import { LP_URL } from '@/utils'
 
 type Props = {
 	id: CollectionEntry<'blog'>['id']
 	data: CollectionEntry<'blog'>['data']
 	headings: MarkdownHeading[]
 	readTime: string
+	slug: CollectionEntry<'blog'>['slug']
+	// frontmatter の affiliate か、本文中のアフィリエイトリンク検出のどちらかで true
+	affiliate?: boolean
 }
 
-const { data, readTime, headings, id } = Astro.props
-const { title, description, pubDate, heroImage, tags } = data
+const { data, readTime, headings, id, slug, affiliate = data.affiliate } = Astro.props
+const { title, description, pubDate, heroImage, tags, category, format } = data
 
 const articleDate = pubDate.toISOString()
+
+// heroImage が無い記事は自動生成の OGP 画像を使う
+const ogImage = heroImage?.src ?? `/og/${slug}.png`
+const absolute = (path: string) => new URL(path, Astro.site).href
+const pageUrl = absolute(Astro.url.pathname)
+
+const jsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'BlogPosting',
+	headline: title,
+	description,
+	image: [absolute(ogImage)],
+	datePublished: articleDate,
+	dateModified: articleDate,
+	inLanguage: siteConfig.lang,
+	articleSection: category,
+	keywords: tags.join(','),
+	url: pageUrl,
+	mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+	author: { '@type': 'Organization', name: siteConfig.author, url: LP_URL },
+	publisher: {
+		'@type': 'Organization',
+		name: siteConfig.author,
+		url: LP_URL,
+		logo: { '@type': 'ImageObject', url: absolute(siteConfig.logo) }
+	}
+}
 ---
 
 <BaseLayout
 	title={title}
 	description={description}
-	image={heroImage?.src}
+	image={ogImage}
 	articleDate={articleDate}
+	jsonLd={jsonLd}
+	stickyCta
 >
-	<article class='min-w-full md:py-4 sm:max-w-none md:max-w-none'>
+	<article class='min-w-full md:py-4 sm:max-w-none md:max-w-none' data-format={format}>
 		<header class='mb-3 flex flex-col justify-center items-center gap-6'>
 			<div class='flex flex-col gap-2'>
 				<div class='flex items-center justify-center gap-x-1'>
@@ -44,6 +79,18 @@ const articleDate = pubDate.toISOString()
 			<div class='flex flex-wrap justify-center items-center gap-2 gap-y-4 md:gap-5'>
 				{tags.map((tag) => <Tag tag={tag} />)}
 			</div>
+
+			{
+				affiliate && (
+					<p
+						class='w-full rounded-md bg-gray-100 px-3 py-2 text-center text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-200'
+						data-pr-notice
+					>
+						<span class='mr-1 rounded border border-current px-1 text-xs font-bold'>PR</span>
+						本記事はプロモーション（アフィリエイト広告）を含みます
+					</p>
+				)
+			}
 		</header>
 
 		<>
@@ -63,7 +110,7 @@ const articleDate = pubDate.toISOString()
 			}
 		</>
 
-		<hr />
+		<CtaTop />
 
 		<div>
 			<slot />

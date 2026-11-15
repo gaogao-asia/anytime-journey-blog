@@ -1,0 +1,56 @@
+---
+// placement: gym — 公開ジムページへ誘導するカード
+// 例: <GymCta brand="chocoZAP" />
+import { gymsUrl, pageSlug } from '@/utils/storeLinks'
+
+interface Props {
+	brand?: string
+	text?: string
+}
+const { brand, text } = Astro.props
+const slug = pageSlug(Astro.url.pathname)
+const heading = text ?? (brand ? `${brand} の店舗を探す` : '近くのジムを探す')
+---
+
+<aside
+	class='not-prose my-8 flex flex-col gap-3 rounded-xl border border-gray-300 p-4 dark:border-gray-600 sm:flex-row sm:items-center sm:gap-4'
+>
+	<div class='flex min-w-0 flex-1 items-center gap-3'>
+		<span
+			class='flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent'
+			aria-hidden='true'
+		>
+			<svg
+				width='22'
+				height='22'
+				viewBox='0 0 24 24'
+				fill='none'
+				stroke='currentColor'
+				stroke-width='2'
+				stroke-linecap='round'
+				stroke-linejoin='round'
+			>
+				<path d='M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z'></path>
+				<circle cx='12' cy='10' r='2.5'></circle>
+			</svg>
+		</span>
+		<p class='min-w-0 text-base font-bold leading-snug'>
+			{heading}
+			<span class='block text-xs font-medium text-gray-600 dark:text-gray-300'>
+				Fitness Journey のジムページ（登録不要）
+			</span>
+		</p>
+	</div>
+	<a
+		href={gymsUrl('gym', slug, brand)}
+		target='_blank'
+		rel='noopener'
+		data-app-cta
+		data-placement='gym'
+		data-slug={slug}
+		data-store='web'
+		class='shrink-0 rounded-full border-2 border-accent px-5 py-2 text-center text-sm font-bold text-accent transition-colors hover:bg-accent hover:text-white'
+	>
+		口コミと混雑傾向を見る →
+	</a>
+</aside>

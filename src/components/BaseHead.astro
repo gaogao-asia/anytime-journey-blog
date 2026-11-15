@@ -2,30 +2,41 @@
 import { siteConfig } from '@/site-config'
 import '../styles/global.css'
 import { ViewTransitions } from 'astro:transitions'
+import { join } from 'path'
+import { AstroFont } from 'astro-font'
 
 export interface Props {
-	title: string
+	title?: string
 	description?: string
 	ogImage?: string | undefined
 	articleDate?: string | undefined
+	jsonLd?: Record<string, unknown> | undefined
 }
 
-const { title, description = siteConfig.description, ogImage, articleDate } = Astro.props
-const canonicalURL = new URL(Astro.url.pathname, Astro.site)
-const socialImageURL = new URL(ogImage ? ogImage : '/open-graph.png', Astro.url).href
+const { title, description = siteConfig.description, ogImage, articleDate, jsonLd } = Astro.props
+const canonicalURL = new URL(Astro.url.pathname, Astro.site).href
+const socialImageURL = new URL(ogImage ? ogImage : '/open-graph.png', Astro.site).href
 
 const titleSeparator = '•'
 
-const siteTitle = `${title} ${titleSeparator} ${siteConfig.title}`
+const siteTitle = title ? `${title} ${titleSeparator} ${siteConfig.title}` : siteConfig.title
+const ogTitle = title ?? siteConfig.title
 
-import { join } from 'path'
-import { AstroFont } from 'astro-font'
+// GA4 は測定 ID が設定されている時だけ読み込む
+const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID
+const gaInit =
+	'window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}' +
+	"gtag('js',new Date());gtag('config'," +
+	JSON.stringify(gaId) +
+	');'
 ---
 
 <!-- Global Metadata -->
 <meta charset='utf-8' />
 <meta name='viewport' content='width=device-width,initial-scale=1' />
-<link rel='icon' type='image/svg+xml' href='/favicon.svg' />
+<link rel='icon' type='image/png' href={siteConfig.logo} />
+<link rel='apple-touch-icon' href={siteConfig.logo} />
+<meta name='theme-color' content={siteConfig.accentColor} />
 <meta name='generator' content={Astro.generator} />
 
 <!-- Canonical URL -->
@@ -44,8 +55,10 @@ import { AstroFont } from 'astro-font'
 
 <!-- Open Graph / Facebook -->
 <meta property='og:type' content={articleDate ? 'article' : 'website'} />
-<meta property='og:url' content={Astro.url} />
-<meta property='og:title' content={title} />
+<meta property='og:url' content={canonicalURL} />
+<meta property='og:site_name' content={siteConfig.title} />
+<meta property='og:locale' content={siteConfig.ogLocale} />
+<meta property='og:title' content={ogTitle} />
 <meta property='og:description' content={description} />
 <meta property='og:image' content={socialImageURL} />
 {
@@ -58,11 +71,24 @@ import { AstroFont } from 'astro-font'
 }
 
 <!-- Twitter -->
-<meta property='twitter:card' content='summary_large_image' />
-<meta property='twitter:url' content={Astro.url} />
-<meta property='twitter:title' content={title} />
-<meta property='twitter:description' content={description} />
-<meta property='twitter:image' content={socialImageURL} />
+<meta name='twitter:card' content='summary_large_image' />
+<meta name='twitter:url' content={canonicalURL} />
+<meta name='twitter:title' content={ogTitle} />
+<meta name='twitter:description' content={description} />
+<meta name='twitter:image' content={socialImageURL} />
+
+{
+	jsonLd && (
+		<script
+			type='application/ld+json'
+			is:inline
+			set:html={JSON.stringify(jsonLd).replace(/</g, '\\u003c')}
+		/>
+	)
+}
+
+{gaId && <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />}
+{gaId && <script is:inline set:html={gaInit} />}
 
 <!-- RSS auto-discovery -->
 <link rel='alternate' type='application/rss+xml' title={siteConfig.title} href='/rss.xml' />

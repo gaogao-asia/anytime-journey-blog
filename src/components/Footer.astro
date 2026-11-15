@@ -1,7 +1,77 @@
 ---
+import StoreBadges from '@/components/cta/StoreBadges'
+import { siteConfig } from '@/data/site.config'
+import { CATEGORIES } from '@/data/categories'
+import { getCategories, gymsUrl, lpUrl, pageSlug, sluglify } from '@/utils'
+
 const today = new Date()
+const used = await getCategories()
+const categories = CATEGORIES.filter((category) => used.includes(category))
+const slug = pageSlug(Astro.url.pathname)
 ---
 
-<footer class='flex justify-center items-center w-full px-16 h-28 border-t-2'>
-	&copy; {today.getFullYear()} Your Name. All rights reserved.
+<footer class='mt-8 w-full border-t-2 py-10 text-sm dark:border-gray-700'>
+	<div class='grid gap-8 md:grid-cols-[1.4fr_1fr_1fr]'>
+		<div class='flex flex-col gap-3'>
+			<a href='/' class='flex items-center gap-2 text-base font-bold'>
+				<img
+					src={siteConfig.logo}
+					width='32'
+					height='32'
+					alt=''
+					loading='lazy'
+					class='h-8 w-8 rounded-lg bg-white ring-1 ring-black/10'
+				/>
+				{siteConfig.title}
+			</a>
+			<p class='text-gray-600 dark:text-gray-300'>
+				パーソナルトレーナーに通わなくても、自分で学べて続けられる。ジム通いの習慣化を後押しします。
+			</p>
+			<StoreBadges placement='footer' />
+		</div>
+
+		<nav aria-label='カテゴリ'>
+			<p class='mb-2 font-bold'>カテゴリ</p>
+			<ul class='flex flex-col gap-1.5 text-gray-600 dark:text-gray-300'>
+				{
+					categories.map((category) => (
+						<li>
+							<a class='hover:text-accent' href={`/category/${sluglify(category.toLowerCase())}/1`}>
+								{category}
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</nav>
+
+		<nav aria-label='リンク'>
+			<p class='mb-2 font-bold'>Fitness Journey</p>
+			<ul class='flex flex-col gap-1.5 text-gray-600 dark:text-gray-300'>
+				<li>
+					<a class='hover:text-accent' href={lpUrl('footer', slug)} target='_blank' rel='noopener'>
+						アプリについて
+					</a>
+				</li>
+				<li>
+					<a
+						class='hover:text-accent'
+						href={gymsUrl('footer', slug)}
+						target='_blank'
+						rel='noopener'
+					>
+						ジムを探す
+					</a>
+				</li>
+				<li><a class='hover:text-accent' href='/tags'>タグ一覧</a></li>
+				<li><a class='hover:text-accent' href='/rss.xml'>RSS</a></li>
+			</ul>
+		</nav>
+	</div>
+
+	<p class='mt-8 text-xs text-gray-500 dark:text-gray-400'>
+		当ブログの一部の記事にはアフィリエイト広告が含まれます。<br />
+		 &copy; {today.getFullYear()}
+		{siteConfig.author}
+	</p>
 </footer>
