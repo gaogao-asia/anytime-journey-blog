@@ -1,0 +1,83 @@
+name: Post to X
+
+# 公開された自動生成記事 (generated: true) を X に投稿する。
+# 記事の URL が 200 を返すまで待ち (最大 15 分)、editorial/social/<slug>.json の文面で投稿する。
+# 投稿したらサイドカーに postedAt を記録してコミットする (二重投稿防止)。
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/content/blog/**'
+  workflow_call:
+    secrets:
+      X_API_KEY:
+        required: false
+      X_API_SECRET:
+        required: false
+      X_ACCESS_TOKEN:
+        required: false
+      X_ACCESS_TOKEN_SECRET:
+        required: false
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: '投稿する記事の slug (公開から 3 日を過ぎた未投稿の記事を投稿するとき)'
+        required: false
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: post-to-x
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write # 投稿済みの記録をコミットする
+    env:
+      BASE_BRANCH: ${{ github.event.repository.default_branch || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 呼び出し元が直前に push したコミットを含めるため、ブランチの先頭を取る
+          ref: ${{ github.event.repository.default_branch || github.ref_name }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: 依存関係のインストール
+        run: |
+          npm install --global pnpm@10
+          pnpm install --frozen-lockfile
+
+      - name: X に投稿 (シークレットが無ければスキップ)
+        id: post
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+          SLUG: ${{ inputs.slug }}
+        run: |
+          if [ -n "$SLUG" ]; then
+            node scripts/post-to-x.mjs --slug "$SLUG"
+          else
+            node scripts/post-to-x.mjs
+          fi
+
+      - name: 投稿済みを記録
+        # 一部が失敗しても、投稿できたぶんは必ず記録する
+        if: always() && steps.post.outputs.posted != ''
+        env:
+          POSTED: ${{ steps.post.outputs.posted }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add editorial/social
+          git commit -m "X 投稿を記録: $POSTED [skip ci]"
+          git pull --rebase origin "$BASE_BRANCH"
+          git push origin "HEAD:$BASE_BRANCH"
