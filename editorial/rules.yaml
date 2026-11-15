@@ -1,0 +1,83 @@
+# 自動生成記事の検証ルール (scripts/lib/validate.mjs が読む)。
+
+limits:
+  title_max: 80
+  description_min: 40
+  description_max: 160
+  # 本文の文字数 (MDX タグ・Markdown 記号・空白を除いた数)。目安は 2,000〜3,500 字
+  body_min: 1800
+  body_max: 4500
+  min_h2: 2
+  tags_min: 1
+  tags_max: 5
+  # X 投稿文 (URL とハッシュタグを除く)
+  x_text_max: 110
+  x_hashtags_max: 2
+  # X の文字数カウント (全角 2 / 半角 1 / URL 23) での上限
+  x_weighted_max: 280
+  # note 原稿の本文。目安は 800〜1,200 字
+  note_min: 700
+  note_max: 1500
+
+mdx:
+  allowed_components: [AppCta, GymCta, Talk, TalkCta]
+  talk_who: [kenta, misaki]
+  # AppCta と TalkCta を合わせた本文中のアプリ導線の上限
+  max_app_cta: 1
+  forbidden_html: [script, iframe, style, object, embed, form, input, link, meta, base, frame, svg, img, video, audio]
+
+links:
+  # 本文に書いてよいリンク先 (サブドメインを含む)。アフィリエイトのホストは src/utils/affiliate.ts
+  allowed_hosts:
+    - anytimejourney.net
+    - anytimejourney.netlify.app
+
+# 禁止表現。1 文 (。！？と改行で区切る) ごとに pattern を探す。
+#   near : 同じ文にこのパターンもあるときだけ違反にする
+#   allow: 同じ文にこのパターンがあれば違反にしない (否定・注意喚起など)
+banned:
+  - id: guarantee-weight-loss
+    pattern: '(必ず|確実に|絶対|誰でも|簡単に)[^。]{0,8}(痩|や)せ(る|ます|られ)'
+    reason: 効果の保証にあたる (景表法)
+  - id: only-by
+    pattern: '(飲む|食べる|塗る|着る|貼る)だけで[^。]{0,10}(痩|や)せ'
+    reason: 効果の保証にあたる (景表法)
+  - id: numeric-promise
+    pattern: '[0-9０-９]+\s*(日|週間|か月|ヶ月|カ月)で[^。]{0,6}([-−]\s*[0-9０-９]+\s*(kg|キロ)|[0-9０-９]+\s*(kg|キロ)[^。]{0,4}(痩|やせ|落|減|ダウン))'
+    reason: 期間と数値で成果を約束している
+  - id: absolutely
+    pattern: '絶対に?'
+    allow: ['絶対に?[^。]{0,12}(しない|やめ|避け|無理|NG|ダメ|だめ|いけません)', '絶対(では|じゃ)(ない|ありません)', '絶対的']
+    reason: 断定しすぎ。効果や結果を言い切らない
+  - id: cure
+    pattern: '治(る|す|り|せ|っ|癒)'
+    allow: ['医師|医療機関|病院|受診|整形外科|専門家に相談']
+    reason: 治療効果をうたう表現 (薬機法)
+  - id: disease-claim
+    pattern: '(糖尿病|高血圧|がん|癌|うつ病|認知症|生活習慣病|動脈硬化|脳卒中)[^。]{0,15}(予防|改善|防|効)'
+    allow: ['医師|医療機関|受診']
+    reason: 病気の予防・改善をうたう表現 (薬機法)
+  - id: guarantee
+    pattern: '(効果|結果|成果)(を|は|が)?[^。]{0,4}(保証|約束)'
+    allow: ['(保証|約束)(する|できる)?(もの|わけ)?(では|じゃ)(ありません|ない)', '(保証|約束)(は)?(でき|され)(ません|ない)']
+    reason: 効果の保証にあたる (景表法)
+  - id: authority
+    pattern: '(医師|医者|ドクター|専門医|管理栄養士|厚生労働省)(が|も|の)(推奨|おすすめ|お墨付き|認め)'
+    reason: 根拠を示せない権威付け
+  - id: proven
+    pattern: '(医学的|科学的|臨床的)に(証明|実証)'
+    reason: 出典を示せない断定
+  - id: supplement-efficacy
+    pattern: '(に|へ)(効く|効きます|効果がある|効果があります|効果的です)'
+    near: 'サプリ|プロテイン|BCAA|EAA|クレアチン|ビタミン|アミノ酸|グルタミン|HMB|カルニチン|青汁|酵素'
+    allow: ['とは(言え|いえ|限り)|わけでは|ではありません']
+    reason: サプリ・食品の効能の断定 (薬機法)
+  - id: superlative
+    pattern: '日本一|世界一|業界(初|一|最安|最大|No)|最安値|ナンバーワン|ナンバー1|(?<![A-Za-z])No\.?\s?[1１](?![0-9])|人気(No|ナンバー)|売上(No|ナンバー)'
+    reason: 根拠の要る最上級表現 (景表法)
+  - id: fabricated-source
+    pattern: '(研究|調査|論文|データ)(では|によると|によれば)[^。]{0,40}[0-9０-９]+(\.[0-9]+)?\s*(%|％|倍|割)'
+    reason: 出典を確認できない統計・研究結果
+  - id: fake-experience
+    pattern: '(私|僕|筆者)(は|も)[^。]{0,20}[0-9０-９]+\s*(kg|キロ)[^。]{0,6}(痩|や|落|減|増)'
+    reason: 架空の体験談・数値
