@@ -64,3 +64,12 @@
 		padding-bottom: 64px;
 	}
 }
+
+/* アプリ内の WebView ではダウンロード導線を隠す (BaseHead のスクリプトが html.in-app を付ける) */
+html.in-app [data-hide-in-app],
+html.in-app a[data-app-cta] {
+	display: none !important;
+}
+html.in-app body.has-cta-sticky {
+	padding-bottom: 0;
+}

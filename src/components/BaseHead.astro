@@ -87,6 +87,27 @@ const gaInit =
 	)
 }
 
+<!-- アプリ内の WebView (URL に inapp=1) では、既にアプリを使っている人にダウンロード導線を出さない -->
+<script is:inline>
+	;(function () {
+		var KEY = 'in-app'
+		var inApp = false
+		try {
+			if (new URLSearchParams(location.search).get('inapp') === '1')
+				sessionStorage.setItem(KEY, '1')
+			inApp = sessionStorage.getItem(KEY) === '1'
+		} catch (e) {
+			inApp = /[?&]inapp=1(&|$)/.test(location.search)
+		}
+		if (!inApp) return
+		var apply = function () {
+			document.documentElement.classList.add('in-app')
+		}
+		apply()
+		document.addEventListener('astro:after-swap', apply)
+	})()
+</script>
+
 {gaId && <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />}
 {gaId && <script is:inline set:html={gaInit} />}
 
