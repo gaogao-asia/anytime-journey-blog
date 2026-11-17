@@ -1,81 +1,141 @@
 ---
-import HeaderLink from '@/components/HeaderLink'
-import TwitterIcon from '@/components/icons/TwitterIcon'
-import GithubIcon from '@/components/icons/GithubIcon'
 import MenuIcon from './icons/MenuIcon.astro'
 import Search from '@/components/Search'
-import TagIcon from './icons/TagIcon.astro'
 import ToggleTheme from './ToggleTheme.astro'
+import AppLink from '@/components/cta/AppLink'
+import { siteConfig } from '@/data/site.config'
+import { CATEGORIES } from '@/data/categories'
+import { getCategories, gymsUrl, pageSlug, sluglify } from '@/utils'
 
-// ADD YOUR SOCIAL NETWORKS HERE
-const SOCIALNETWORKS = [
-	{
-		name: 'Github',
-		url: 'https://github.com/danielcgilibert/blog-template',
-		icon: GithubIcon
-	},
-
-	{
-		name: 'Twitter',
-		url: 'https://github.com/danielcgilibert/blog-template',
-		icon: TwitterIcon
-	}
-]
+// 記事があるカテゴリだけを、定義順で並べる
+const used = await getCategories()
+const categories = CATEGORIES.filter((category) => used.includes(category))
+const categoryHref = (category: string) => `/category/${sluglify(category.toLowerCase())}/1`
+const gymsHref = gymsUrl('header', pageSlug(Astro.url.pathname))
 ---
 
-<header class='relative flex items-center h-12 font-semibold'>
-	<a class='text-lg mr-auto' href='/'>Home</a>
+<header class='relative flex h-12 items-center gap-3 font-semibold md:gap-5'>
+	<a class='mr-auto flex min-w-0 items-center gap-2' href='/'>
+		<img
+			src={siteConfig.logo}
+			width='32'
+			height='32'
+			alt=''
+			class='h-8 w-8 shrink-0 rounded-lg bg-white ring-1 ring-black/10'
+		/>
+		<span class='text-[13px] font-bold leading-tight sm:text-lg'>{siteConfig.title}</span>
+	</a>
 
-	<div
-		id='astro-header-drawer'
-		class='shadow rounded-l-lg md:bg-transparent dark:md:bg-transparent bg-white dark:bg-[#0a0910] md:shadow-none md:rounded-none md:border-none md:h-auto md:static absolute transition-transform duration-300 ease-in translate-x-96 md:translate-x-0 top-12 -right-5 pl-4 pt-6 pb-4 md:p-0 h-[200px] w-[200px] z-50'
-	>
-		<nav
-			class='flex h-full flex-col justify-between gap-12 text-left md:flex-row md:w-full md:gap-5'
-		>
-			<div
-				class='flex flex-col gap-4 md:flex-row md:border-r-2 border-black pr-4 dark:border-white'
+	<nav class='hidden items-center gap-5 text-sm md:flex' aria-label='メインメニュー'>
+		<details id='header-categories' class='relative'>
+			<summary
+				class='cursor-pointer list-none hover:text-accent [&::-webkit-details-marker]:hidden'
 			>
-				<HeaderLink href='/tags' class='flex items-center gap-1 text-2xl md:text-base'>
-					<TagIcon /> Tags
-				</HeaderLink>
-			</div>
-
-			<div class='flex justify-center items-center md:justify-end gap-3 md:p-0'>
+				カテゴリ <span aria-hidden='true'>▾</span>
+			</summary>
+			<ul
+				class='absolute left-0 top-8 z-50 flex w-52 flex-col rounded-lg border border-gray-200 bg-white py-2 shadow-lg dark:border-gray-700 dark:bg-[#15141d]'
+			>
 				{
-					SOCIALNETWORKS.map((network) => (
-						<HeaderLink class='' href={network.url} target='_blank' aria-label={network.name}>
-							<span>{<network.icon />} </span>
-						</HeaderLink>
+					categories.map((category) => (
+						<li>
+							<a
+								class='block px-4 py-2 hover:bg-accent/10 hover:text-accent'
+								href={categoryHref(category)}
+							>
+								{category}
+							</a>
+						</li>
 					))
 				}
-			</div>
-		</nav>
-	</div>
+				<li class='mt-1 border-t border-gray-200 pt-1 dark:border-gray-700'>
+					<a class='block px-4 py-2 hover:bg-accent/10 hover:text-accent' href='/tags'>タグ一覧</a>
+				</li>
+			</ul>
+		</details>
+		<a class='hover:text-accent' href={gymsHref} target='_blank' rel='noopener'>ジムを探す</a>
+	</nav>
 
-	<div class='flex items-center gap-3 md:pl-3' transition:persist='navbar'>
-		<div>
-			<Search />
+	<div class='flex items-center gap-3' transition:persist='navbar'>
+		<Search />
+		<div class='hidden h-6 w-6 sm:block'>
+			<ToggleTheme />
 		</div>
-		<ToggleTheme />
-		<button id='astro-header-drawer-button' type='button' class='md:ml-6 md:hidden'>
-			<MenuIcon />
-			<span class='sr-only'>Show Menu</span>
-		</button>
 	</div>
-</header>
-<script>
-	document.addEventListener('click', (event) => {
-		const menu = document.getElementById('astro-header-drawer')
-		const menuButton = document.getElementById('astro-header-drawer-button')
-		const isClickInside =
-			menu?.contains(event.target as HTMLDivElement) ||
-			menuButton?.contains(event.target as HTMLButtonElement)
 
-		if (isClickInside) {
-			menu?.classList.toggle('translate-x-96')
-		} else {
-			menu?.classList.add('translate-x-96')
+	<AppLink
+		placement='header'
+		class='shrink-0 rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-accent-dark sm:px-4 sm:py-2 sm:text-sm'
+	>
+		<span class='sm:hidden'>アプリを入手</span>
+		<span class='hidden sm:inline'>アプリをダウンロード</span>
+	</AppLink>
+
+	<button
+		id='astro-header-drawer-button'
+		type='button'
+		class='md:hidden'
+		aria-controls='astro-header-drawer'
+		aria-expanded='false'
+	>
+		<MenuIcon />
+		<span class='sr-only'>メニューを開く</span>
+	</button>
+
+	<nav
+		id='astro-header-drawer'
+		hidden
+		aria-label='モバイルメニュー'
+		class='absolute right-0 top-12 z-50 w-64 rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-[#15141d] md:!hidden'
+	>
+		<p class='mb-1 text-xs text-gray-500 dark:text-gray-400'>カテゴリ</p>
+		<ul class='flex flex-col'>
+			{
+				categories.map((category) => (
+					<li>
+						<a class='block py-2' href={categoryHref(category)}>
+							{category}
+						</a>
+					</li>
+				))
+			}
+			<li><a class='block py-2' href='/tags'>タグ一覧</a></li>
+		</ul>
+		<a
+			class='mt-2 block border-t border-gray-200 pt-3 text-accent dark:border-gray-700'
+			href={gymsHref}
+			target='_blank'
+			rel='noopener'
+		>
+			ジムを探す →
+		</a>
+	</nav>
+</header>
+
+<script>
+	const closeAll = () => {
+		const drawer = document.getElementById('astro-header-drawer')
+		if (drawer) drawer.hidden = true
+		document.getElementById('astro-header-drawer-button')?.setAttribute('aria-expanded', 'false')
+		document.getElementById('header-categories')?.removeAttribute('open')
+	}
+
+	document.addEventListener('click', (event) => {
+		const target = event.target as Element
+		const drawer = document.getElementById('astro-header-drawer')
+		const button = document.getElementById('astro-header-drawer-button')
+		const details = document.getElementById('header-categories')
+
+		if (button?.contains(target)) {
+			if (drawer) drawer.hidden = !drawer.hidden
+			button.setAttribute('aria-expanded', String(!drawer?.hidden))
+			return
 		}
+		if (drawer && !drawer.contains(target)) {
+			drawer.hidden = true
+			button?.setAttribute('aria-expanded', 'false')
+		}
+		if (details && !details.contains(target)) details.removeAttribute('open')
 	})
+	document.addEventListener('astro:after-swap', closeAll)
 </script>

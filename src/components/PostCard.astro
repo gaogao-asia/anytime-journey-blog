@@ -13,14 +13,28 @@ const {
 
 <article class='grid grid-rows-[300px_auto] md:grid-rows-[300px_220px] min-h-full group'>
 	<a class='relative overflow-hidden' href={`/post/${slug}/`}>
-		<Image
-			src={heroImage}
-			width={600}
-			height={200}
-			format='webp'
-			class='h-full min-w-full object-cover hover:scale-[101%] transition-all duration-200 rounded-[2px]'
-			alt={`img of ${title}`}
-		/>
+		{
+			heroImage ? (
+				<Image
+					src={heroImage}
+					width={600}
+					height={200}
+					format='webp'
+					class='h-full min-w-full object-cover hover:scale-[101%] transition-all duration-200 rounded-[2px]'
+					alt={title}
+				/>
+			) : (
+				<img
+					src={`/og/${slug}.png`}
+					width='1200'
+					height='630'
+					loading='lazy'
+					decoding='async'
+					class='h-full w-full bg-white object-contain object-top rounded-[2px]'
+					alt={title}
+				/>
+			)
+		}
 
 		<div class='z-30 absolute bottom-0 w-full h-20'>
 			<div class='-z-10 absolute bottom-0 glass w-full min-h-full'></div>

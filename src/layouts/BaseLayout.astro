@@ -6,12 +6,21 @@ import ProviderTheme from '@/components/ProviderTheme'
 import ProviderAnimations from '@/components/ProviderAnimations'
 import TwSizeIndicator from '@/components/TwSizeIndicator'
 import EditBlog from '@/components/editBlog'
-const { title, description, image, articleDate } = Astro.props
+import CtaScripts from '@/components/cta/CtaScripts'
+import CtaSticky from '@/components/cta/CtaSticky'
+import { siteConfig } from '@/data/site.config'
+const { title, description, image, articleDate, jsonLd, stickyCta = false } = Astro.props
 ---
 
-<html lang='en' class='scroll-smooth'>
+<html lang={siteConfig.lang} class='scroll-smooth'>
 	<head>
-		<BaseHead title={title} description={description} ogImage={image} articleDate={articleDate} />
+		<BaseHead
+			title={title}
+			description={description}
+			ogImage={image}
+			articleDate={articleDate}
+			jsonLd={jsonLd}
+		/>
 		<ProviderTheme />
 		<ProviderAnimations />
 	</head>
@@ -20,10 +29,12 @@ const { title, description, image, articleDate } = Astro.props
 		<main
 			class='px-5 sm:mx-auto sm:max-w-2xl sm:px-8 lg:px-0 antialiased md:max-w-6xl grid gap-12 mt-4 overflow-hidden md:overflow-visible'
 		>
-			<!--Header /-->
+			<Header />
 			<slot />
-			<!--Footer /-->
+			<Footer />
 		</main>
+		{stickyCta && <CtaSticky />}
+		<CtaScripts />
 		<TwSizeIndicator />
 		<EditBlog />
 		<style>

@@ -5,12 +5,17 @@ import Code from '@/components/mdx/Code'
 import ListRelatedPosts from '@/components/ListRelatedPosts'
 import Share from '@/components/Share'
 import TableOfContents from '@/components/TableOfContents'
-import { getPosts } from '@/utils'
+import { getPosts, hasAffiliateLink } from '@/utils'
 import SButton from '@/components/mdx/SButton'
+import AppCta from '@/components/mdx/AppCta'
+import GymCta from '@/components/mdx/GymCta'
+import Talk from '@/components/mdx/Talk'
+import TalkCta from '@/components/mdx/TalkCta'
+import CtaEnd from '@/components/cta/CtaEnd'
 import Disqus from '@/components/Disqus'
 import { disqusConfig } from '@/data/disqus.config'
 
-const posts = await getCollection('blog')
+const posts = await getPosts()
 export async function getStaticPaths() {
 	const posts = await getPosts()
 
@@ -36,18 +41,26 @@ const relatedPosts = getRelatedPosts(post)
 const { Content, headings, remarkPluginFrontmatter } = await post.render()
 
 const disqusEnabled = disqusConfig.enabled
+
+// MDX 本文で import 無しに使えるコンポーネント
+const mdxComponents = { pre: Code, SButton, AppCta, GymCta, Talk, TalkCta }
+
+// frontmatter の付け忘れに備え、本文にアフィリエイトリンクがあれば PR 表記を出す
+const affiliate = post.data.affiliate || hasAffiliateLink(post.body)
 ---
 
 <BlogPost
 	id={post.id}
+	slug={post.slug}
+	affiliate={affiliate}
 	data={post.data}
 	headings={headings}
 	readTime={remarkPluginFrontmatter.minutesRead}
 >
-	<div class='grid grid-cols-1 md:grid-cols-[20%_auto] gap-10 mt-8'>
+	<div class='grid grid-cols-1 md:grid-cols-[20%_minmax(0,1fr)] gap-10 mt-8'>
 		<!-- aside  -->
 		<aside class='md:flex flex-col gap-8 hidden'>
-			<Share />
+			<Share title={post.data.title} />
 			<div class='sticky top-24 self-start hidden md:block transition-all duration-200'>
 				{headings && headings.length > 0 && <TableOfContents {headings} />}
 			</div>
@@ -56,8 +69,12 @@ const disqusEnabled = disqusConfig.enabled
 		<!-- post -->
 		<article class='max-w-full w-full'>
 			<div class='prose prose-lg md:prose-xl dark:prose-invert mb-12 min-w-full'>
-				<Content components={{ pre: Code, SButton }} />
+				<Content components={mdxComponents} />
 			</div>
+
+			<CtaEnd variant={post.data.cta} />
+
+			<Share title={post.data.title} class='mb-10 md:hidden' />
 
 			<!-- related posts -->
 			<footer>

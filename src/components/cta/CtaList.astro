@@ -1,0 +1,25 @@
+---
+// placement: list — 記事一覧の途中に挟むカード
+import AppLink from '@/components/cta/AppLink'
+import AppLogo from '@/components/cta/AppLogo'
+---
+
+<aside
+	data-hide-in-app
+	class='col-span-full flex flex-col gap-4 rounded-2xl border border-accent/30 bg-accent/5 p-5 dark:border-accent/40 dark:bg-accent/10 sm:flex-row sm:items-center sm:gap-6 sm:p-6'
+	aria-label='Fitness Journey アプリの紹介'
+>
+	<AppLogo size={56} />
+	<div class='min-w-0 flex-1'>
+		<p class='text-lg font-bold leading-snug'>読むだけで終わらせない。ジム通いを「続く習慣」に</p>
+		<p class='mt-1 text-sm text-gray-700 dark:text-gray-200'>
+			チェックイン・週間目標・ストリークで続けられる。22,000人が使うジム習慣アプリ Fitness Journey
+		</p>
+	</div>
+	<AppLink
+		placement='list'
+		class='shrink-0 self-start rounded-full bg-accent px-6 py-3 text-center font-bold text-white transition-colors hover:bg-accent-dark sm:self-center'
+	>
+		アプリをダウンロード
+	</AppLink>
+</aside>

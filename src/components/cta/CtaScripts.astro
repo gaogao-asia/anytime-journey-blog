@@ -1,0 +1,66 @@
+---
+// アプリ導線の共通スクリプト: OS に応じたストアリンクへの差し替え、追従フッターの開閉、クリック計測
+---
+
+<script>
+	const ua = navigator.userAgent
+	const os =
+		/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)
+			? 'ios'
+			: /Android/.test(ua)
+			? 'android'
+			: null
+
+	const STICKY_KEY = 'cta-sticky-closed'
+	const stickyClosed = () => {
+		try {
+			return sessionStorage.getItem(STICKY_KEY) === '1'
+		} catch {
+			return false
+		}
+	}
+
+	const setup = () => {
+		if (os) {
+			document.querySelectorAll<HTMLAnchorElement>('a[data-app-cta][data-ios]').forEach((a) => {
+				const href = a.dataset[os]
+				if (!href) return
+				a.href = href
+				a.dataset.store = os
+			})
+		}
+
+		const sticky = document.getElementById('cta-sticky')
+		document.body.classList.toggle('has-cta-sticky', !!sticky && !stickyClosed())
+		if (sticky) sticky.hidden = stickyClosed()
+	}
+
+	document.addEventListener('click', (event) => {
+		const target = event.target as Element | null
+
+		if (target?.closest('[data-cta-sticky-close]')) {
+			const sticky = document.getElementById('cta-sticky')
+			if (sticky) sticky.hidden = true
+			document.body.classList.remove('has-cta-sticky')
+			try {
+				sessionStorage.setItem(STICKY_KEY, '1')
+			} catch {
+				// storage が使えない環境ではこのページ内だけ閉じる
+			}
+			return
+		}
+
+		const link = target?.closest<HTMLAnchorElement>('a[data-app-cta]')
+		if (!link) return
+		const gtag = (window as any).gtag
+		if (typeof gtag !== 'function') return
+		gtag('event', 'app_cta_click', {
+			placement: link.dataset.placement,
+			slug: link.dataset.slug,
+			store: link.dataset.store
+		})
+	})
+
+	setup()
+	document.addEventListener('astro:page-load', setup)
+</script>

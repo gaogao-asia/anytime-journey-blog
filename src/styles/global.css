@@ -38,3 +38,38 @@
 .shadow {
 	box-shadow: -5px 3px 8px 1px rgba(0, 0, 0, 0.12);
 }
+
+/* 対話吹き出し (Talk) の中身。not-prose 配下なので最低限の余白とリンク装飾を戻す */
+.talk-bubble > * + * {
+	margin-top: 0.6em;
+}
+
+.talk-bubble ul,
+.talk-bubble ol {
+	padding-left: 1.4em;
+	list-style: disc;
+}
+
+.talk-bubble ol {
+	list-style: decimal;
+}
+
+.talk-bubble a:not([data-app-cta]) {
+	text-decoration: underline;
+}
+
+/* 追従フッター CTA の高さ分、ページ下部に余白を確保する(スマホ幅のみ) */
+@media (max-width: 767px) {
+	body.has-cta-sticky {
+		padding-bottom: 64px;
+	}
+}
+
+/* アプリ内の WebView ではダウンロード導線を隠す (BaseHead のスクリプトが html.in-app を付ける) */
+html.in-app [data-hide-in-app],
+html.in-app a[data-app-cta] {
+	display: none !important;
+}
+html.in-app body.has-cta-sticky {
+	padding-bottom: 0;
+}

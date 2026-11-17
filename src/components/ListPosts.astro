@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content'
 import PostCard from '@/components/PostCard'
+import CtaList from '@/components/cta/CtaList'
 import { cn } from '@/utils'
 
 type Props = {
@@ -9,6 +10,9 @@ type Props = {
 }
 
 const { posts, FirstBig = false } = Astro.props
+
+// アプリ導線カードを 1 行目の直後(記事が少なければ末尾)に挟む
+const ctaIndex = Math.min(FirstBig ? 2 : 3, posts.length)
 ---
 
 <section
@@ -18,17 +22,21 @@ const { posts, FirstBig = false } = Astro.props
 	)}
 >
 	{
-		posts.map(async (post) => {
+		posts.map(async (post, index) => {
 			const { remarkPluginFrontmatter } = await post.render()
 
 			return (
-				<PostCard
-					id={post.id}
-					data={post.data}
-					slug={post.slug}
-					readTime={remarkPluginFrontmatter.minutesRead}
-				/>
+				<>
+					{index === ctaIndex && <CtaList />}
+					<PostCard
+						id={post.id}
+						data={post.data}
+						slug={post.slug}
+						readTime={remarkPluginFrontmatter.minutesRead}
+					/>
+				</>
 			)
 		})
 	}
+	{posts.length > 0 && ctaIndex === posts.length && <CtaList />}
 </section>

@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: 依存関係のインストール
+        run: |
+          npm install --global pnpm@10
+          pnpm install --frozen-lockfile
+      - name: テスト
+        run: pnpm test
+      - name: 記事の検証
+        run: node scripts/validate-posts.mjs

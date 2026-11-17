@@ -1,24 +1,9 @@
 {
-	"name": "blog-template",
+	"name": "fitness-journey-blog",
 	"type": "module",
 	"version": "1.1.0",
-	"description": "A template for creating a blog with Astro",
-	"author": "danielcgilibert",
+	"description": "Fitness Journey ブログ (Astro)",
 	"license": "GPL-3.0-only",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/danielcgilibert/blog-template"
-	},
-	"keywords": [
-		"astro",
-		"astrojs",
-		"astro-template",
-		"astro-blog",
-		"astro-b"
-	],
-	"bugs": {
-		"url": "https://github.com/danielcgilibert/blog-template/issues"
-	},
 	"scripts": {
 		"dev": "npx tinacms dev -c \"astro dev\"",
 		"start": "astro dev",
@@ -26,6 +11,10 @@
 		"sync": "astro sync",
 		"preview": "astro preview",
 		"postbuild": "pagefind --site dist",
+		"test": "node --test tests/*.test.mjs",
+		"post:generate": "node scripts/generate-post.mjs",
+		"post:validate": "node scripts/validate-posts.mjs",
+		"post:x": "node scripts/post-to-x.mjs",
 		"format:check": "prettier --plugin-search-dir=. --check .",
 		"format": "prettier --plugin-search-dir=. --write .",
 		"lint": "eslint .",
@@ -34,10 +23,13 @@
 	},
 	"dependencies": {
 		"@astrojs/rss": "4.0.1",
+		"@resvg/resvg-js": "^2.6.2",
 		"astro": "4.0.8",
-		"astro-font": "^0.0.72"
+		"astro-font": "^0.0.72",
+		"satori": "^0.63.2"
 	},
 	"devDependencies": {
+		"@anthropic-ai/sdk": "^1.8.0",
 		"@astrojs/mdx": "2.0.3",
 		"@astrojs/sitemap": "3.0.4",
 		"@astrojs/tailwind": "5.1.0",
@@ -62,7 +54,8 @@
 		"tailwind-merge": "2.0.0",
 		"tailwindcss": "3.3.5",
 		"tinacms": "^1.5.21",
-		"typescript": "^5.2.2"
+		"typescript": "^5.2.2",
+		"yaml": "^2.9.1"
 	},
 	"lint-staged": {
 		"*.{astro,js,jsx,ts,tsx,md,mdx,json}": [

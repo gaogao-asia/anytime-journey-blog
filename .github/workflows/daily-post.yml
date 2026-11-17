@@ -1,0 +1,129 @@
+name: Daily post
+
+# 毎日 1 本、記事を生成して公開する。
+#   既定: PR を作成 (人が確認してマージ)
+#   リポジトリ変数 AUTO_PUBLISH が true: デフォルトブランチへ直接コミットして公開し、X にも投稿
+on:
+  schedule:
+    # 毎日 06:17 JST (cron は UTC)
+    - cron: '17 21 * * *'
+  workflow_dispatch:
+    inputs:
+      theme:
+        description: 'テーマ (habit / menu / machine / food / gym / home / selftaught、または mon〜sun)。空なら今日の曜日'
+        required: false
+        type: string
+      topic:
+        description: 'ネタ (検索語)。空ならネタ帳から選ぶ'
+        required: false
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: daily-post
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # 記事のコミットと push
+      pull-requests: write # PR の作成
+    outputs:
+      published: ${{ steps.publish.outputs.published }}
+    env:
+      BASE_BRANCH: ${{ github.event.repository.default_branch || github.ref_name }}
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch || github.ref_name }}
+
+      - name: 今日の記事の PR が既にあれば何もしない
+        id: guard
+        run: |
+          branch="auto-post/$(TZ=Asia/Tokyo date +%Y%m%d)"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --heads origin "$branch" > /dev/null; then
+            echo "ブランチ $branch が既にあるため、何もしません"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.skip != 'true'
+        with:
+          node-version-file: .nvmrc
+
+      - name: 依存関係のインストール
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          npm install --global pnpm@10
+          pnpm install --frozen-lockfile
+
+      - name: 記事の生成 (検証に落ちたら 1 回だけ再生成)
+        id: generate
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+          POST_THEME: ${{ inputs.theme }}
+          POST_TOPIC: ${{ inputs.topic }}
+        run: node scripts/generate-post.mjs
+
+      - name: 検証
+        if: steps.generate.outputs.created == 'true'
+        run: |
+          pnpm test
+          node scripts/validate-posts.mjs
+
+      - name: ビルド
+        if: steps.generate.outputs.created == 'true'
+        run: pnpm build
+
+      - name: サマリー
+        if: steps.generate.outputs.created == 'true'
+        env:
+          SLUG: ${{ steps.generate.outputs.slug }}
+        run: |
+          node scripts/post-summary.mjs "$SLUG" > "$RUNNER_TEMP/summary.md"
+          cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 公開 (PR の作成、または直接コミット)
+        id: publish
+        if: steps.generate.outputs.created == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH }}
+          BRANCH: ${{ steps.guard.outputs.branch }}
+          SLUG: ${{ steps.generate.outputs.slug }}
+          TITLE: ${{ steps.generate.outputs.title }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/content/blog editorial
+          if [ "$AUTO_PUBLISH" = "true" ]; then
+            git commit -m "記事を追加: $TITLE ($SLUG)"
+            git push origin "HEAD:$BASE_BRANCH"
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            git switch -c "$BRANCH"
+            git commit -m "記事を追加: $TITLE ($SLUG)"
+            git push origin "$BRANCH"
+            gh pr create --base "$BASE_BRANCH" --head "$BRANCH" \
+              --title "記事: $TITLE" --body-file "$RUNNER_TEMP/summary.md"
+          fi
+
+  # GITHUB_TOKEN による push は他のワークフローを起動しないので、自動公開のときはここから X 投稿を呼ぶ
+  post-to-x:
+    needs: generate
+    if: needs.generate.outputs.published == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/post-to-x.yml
+    secrets:
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}

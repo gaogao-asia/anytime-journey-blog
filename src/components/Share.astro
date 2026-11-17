@@ -1,28 +1,58 @@
 ---
 import { siteConfig } from '@/data/site.config'
-import TwitterColorIcon from './icons/TwitterColorIcon.astro'
-import LinkedinIcon from './icons/linkedinIcon.astro'
-const message = siteConfig.shareMessage
 
-const URL = Astro.url.href
+interface Props {
+	title?: string
+	class?: string
+}
+const { title = siteConfig.title, class: className } = Astro.props
+
+const url = encodeURIComponent(new URL(Astro.url.pathname, Astro.site).href)
+const text = encodeURIComponent(title)
+
+const links = [
+	{
+		name: 'X',
+		label: 'X でシェア',
+		href: `https://x.com/intent/post?text=${text}&url=${url}`,
+		class: 'bg-black text-white dark:ring-1 dark:ring-white/40'
+	},
+	{
+		name: 'LINE',
+		label: 'LINE で送る',
+		href: `https://social-plugins.line.me/lineit/share?url=${url}`,
+		class: 'bg-[#06C755] text-white'
+	},
+	{
+		name: 'B!',
+		label: 'はてなブックマークに追加',
+		href: `https://b.hatena.ne.jp/add?mode=confirm&url=${url}&title=${text}`,
+		class: 'bg-[#00A4DE] text-white'
+	}
+]
 ---
 
-<div class='flex flex-col gap-2'>
-	<span class='mb-1 font-bold text-2xl'>Share</span>
-	<ul class='flex gap-3 text-black dark:text-white'>
-		<li>
-			<a
-				href={`https://twitter.com/intent/tweet?text=${message + ' ' + URL}`}
-				aria-label='Share on Twitter'><TwitterColorIcon /></a
-			>
-		</li>
-		<li>
-			<a
-				href={`https://www.linkedin.com/shareArticle?mini=true&url=${URL}`}
-				aria-label='Share on LinkedIn'
-			>
-				<LinkedinIcon /></a
-			>
-		</li>
+<div class:list={['flex flex-col gap-2', className]}>
+	<span class='mb-1 font-bold text-lg'>{siteConfig.shareMessage}</span>
+	<ul class='flex gap-3'>
+		{
+			links.map((link) => (
+				<li>
+					<a
+						href={link.href}
+						target='_blank'
+						rel='noopener noreferrer'
+						aria-label={link.label}
+						title={link.label}
+						class:list={[
+							'flex h-10 min-w-[2.5rem] items-center justify-center rounded-full px-3 text-sm font-extrabold transition-opacity hover:opacity-80',
+							link.class
+						]}
+					>
+						{link.name}
+					</a>
+				</li>
+			))
+		}
 	</ul>
 </div>

@@ -1,0 +1,48 @@
+---
+import AppLink from '@/components/cta/AppLink'
+import type { Placement } from '@/utils/storeLinks'
+
+interface Props {
+	placement: Placement
+	slug?: string
+	class?: string
+}
+const { placement, slug, class: className } = Astro.props
+const badge =
+	'inline-flex items-center justify-center gap-2 rounded-lg bg-black px-4 py-2.5 text-white no-underline ring-1 ring-white/30 transition-opacity hover:opacity-80 min-w-[168px]'
+---
+
+<div data-hide-in-app class:list={['flex flex-wrap gap-3', className]}>
+	<AppLink
+		placement={placement}
+		slug={slug}
+		store='ios'
+		class={badge}
+		aria-label='App Store でダウンロード'
+	>
+		<svg width='22' height='22' viewBox='0 0 24 24' fill='currentColor' aria-hidden='true'>
+			<path
+				d='M17.05 12.54c-.03-2.76 2.25-4.08 2.35-4.15-1.28-1.87-3.27-2.13-3.98-2.16-1.69-.17-3.3 1-4.16 1-.86 0-2.18-.97-3.59-.95-1.85.03-3.55 1.07-4.5 2.72-1.92 3.33-.49 8.26 1.38 10.96.91 1.32 2 2.81 3.43 2.75 1.38-.05 1.9-.89 3.56-.89 1.66 0 2.13.89 3.59.86 1.48-.03 2.42-1.35 3.33-2.68 1.05-1.53 1.48-3.02 1.5-3.1-.03-.01-2.88-1.1-2.91-4.36zM14.31 4.42c.76-.92 1.27-2.2 1.13-3.47-1.09.04-2.42.73-3.2 1.65-.7.81-1.32 2.11-1.15 3.36 1.22.09 2.46-.62 3.22-1.54z'
+			></path>
+		</svg>
+		<span class='flex flex-col items-start leading-tight'>
+			<span class='text-[10px] font-medium'>iPhone の方は</span>
+			<span class='text-base font-bold'>App Store</span>
+		</span>
+	</AppLink>
+	<AppLink
+		placement={placement}
+		slug={slug}
+		store='android'
+		class={badge}
+		aria-label='Google Play で手に入れよう'
+	>
+		<svg width='20' height='20' viewBox='0 0 24 24' fill='currentColor' aria-hidden='true'>
+			<path d='M4 2.5v19a1 1 0 0 0 1.5.87l16-9.5a1 1 0 0 0 0-1.74l-16-9.5A1 1 0 0 0 4 2.5z'></path>
+		</svg>
+		<span class='flex flex-col items-start leading-tight'>
+			<span class='text-[10px] font-medium'>Android の方は</span>
+			<span class='text-base font-bold'>Google Play</span>
+		</span>
+	</AppLink>
+</div>

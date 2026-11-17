@@ -1,0 +1,36 @@
+---
+// placement: sticky — スマホ幅のみの追従フッター。閉じたら sessionStorage に記録して同一セッション中は出さない
+import AppLink from '@/components/cta/AppLink'
+import AppLogo from '@/components/cta/AppLogo'
+import CloseIcon from '@/components/icons/CloseIcon'
+---
+
+<div
+	data-hide-in-app
+	id='cta-sticky'
+	hidden
+	class='fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/95 px-3 py-2 shadow-[0_-4px_12px_rgba(0,0,0,0.12)] backdrop-blur dark:border-white/10 dark:bg-[#15141d]/95 md:!hidden'
+>
+	<div class='flex items-center gap-2'>
+		<button
+			type='button'
+			data-cta-sticky-close
+			aria-label='バナーを閉じる'
+			class='-ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-500 dark:text-gray-300'
+		>
+			<CloseIcon />
+		</button>
+		<AppLogo size={36} class='rounded-lg' />
+		<p class='min-w-0 flex-1 text-xs leading-tight'>
+			<span class='block truncate font-bold'>Fitness Journey</span>
+			<span class='block truncate text-gray-600 dark:text-gray-300'>ジム通いが続く習慣化アプリ</span
+			>
+		</p>
+		<AppLink
+			placement='sticky'
+			class='shrink-0 rounded-full bg-accent px-4 py-2 text-sm font-bold text-white no-underline'
+		>
+			無料で使う
+		</AppLink>
+	</div>
+</div>
