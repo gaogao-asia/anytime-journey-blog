@@ -1,2 +1,5 @@
 [build]
   command = 'pnpm build'
+# GA4 の測定 ID (公開値)。本番デプロイだけで計測し、プレビューでは読み込まない
+[context.production.environment]
+  PUBLIC_GA_MEASUREMENT_ID = 'G-CK2VD237P3'
