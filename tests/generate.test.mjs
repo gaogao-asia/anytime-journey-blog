@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { test } from 'node:test'
 import { parseNoteFile, renderPostFile } from '../scripts/lib/assemble.mjs'
-import { ValidationFailure, generate } from '../scripts/lib/generate.mjs'
+import { MAX_ATTEMPTS, ValidationFailure, generate } from '../scripts/lib/generate.mjs'
 import { createFixtureCaller } from '../scripts/lib/llm.mjs'
 import { ROOT } from '../scripts/lib/paths.mjs'
 import { loadUsedTopics } from '../scripts/lib/plan.mjs'
@@ -118,7 +118,7 @@ test('同じ日の記事が既にあれば何もしない。翌週は次のネ�
 	assert.equal(loadUsedTopics(root).length, 2)
 })
 
-test('検証に落ちたら、失敗理由を渡して 1 回だけ再生成する', async () => {
+test('検証に落ちたら、失敗理由を渡して再生成する', async () => {
 	const root = makeTempRoot()
 	const { calls, callModel } = recordingCaller([invalid, valid])
 	const result = await generate({ root, date: '2026-11-16', env, callModel })
@@ -133,6 +133,17 @@ test('検証に落ちたら、失敗理由を渡して 1 回だけ再生成す�
 	assert.equal(loadPosts(root)[0].body.trim(), valid.body_mdx.trim())
 })
 
+test('2 回続けて落ちても、3 回目が通れば公開する', async () => {
+	const root = makeTempRoot()
+	const { calls, callModel } = recordingCaller([invalid, invalid, valid])
+	const result = await generate({ root, date: '2026-11-16', env, callModel })
+
+	assert.equal(result.attempts, 3)
+	assert.equal(calls.length, 3)
+	assert.deepEqual(calls[2].messages.map((m) => m.role), ['user', 'assistant', 'user', 'assistant', 'user'])
+	assert.equal(loadPosts(root).length, 1)
+})
+
 test('再生成しても落ちたら例外にして、何も書き出さない', async () => {
 	const root = makeTempRoot()
 	const { calls, callModel } = recordingCaller([invalid])
@@ -141,7 +152,7 @@ test('再生成しても落ちたら例外にして、何も書き出さない',
 		assert.ok(error.errors.length > 0)
 		return true
 	})
-	assert.equal(calls.length, 2)
+	assert.equal(calls.length, MAX_ATTEMPTS)
 	assert.equal(loadPosts(root).length, 0)
 	assert.equal(loadSidecars(root).length, 0)
 	assert.deepEqual(loadUsedTopics(root), [])
