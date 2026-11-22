@@ -2,6 +2,14 @@ name: CI
 
 on:
   pull_request:
+    # 記事だけの PR では実行しない。自動投稿の PR は bot が作るため、この CI は承認待ちのまま
+    # 実行されず、マージ時に「失敗」として記録されてしまう。記事の検証とビルドは
+    # daily-post の中で PR 作成前に済んでおり、main に入ったあとも下の push で検証する。
+    paths-ignore:
+      - 'src/content/blog/**'
+      - 'editorial/social/**'
+      - 'editorial/note/**'
+      - 'editorial/used-topics.json'
   push:
     branches: [main]
 

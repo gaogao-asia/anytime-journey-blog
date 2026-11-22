@@ -20,6 +20,9 @@ export class ValidationFailure extends Error {
  * options: { root, date (Date | 'YYYY-MM-DD'), theme, topic, force, dryRun, env, callModel, log }
  * 戻り値: { created, reason?, slug?, title?, theme?, topic?, files?, attempts?, usage? }
  */
+/** 生成の試行回数の上限。1 回目で別の禁止表現に当たることがあるので、再生成は 2 回まで許す */
+export const MAX_ATTEMPTS = 3
+
 export async function generate(options) {
 	const { root, callModel, env = process.env, log = () => {} } = options
 	const p = paths(root)
@@ -63,8 +66,8 @@ export async function generate(options) {
 	let bundle
 	let errors = []
 	let attempts = 0
-	// 最初の生成と、検証に落ちたときの再生成 1 回まで
-	while (attempts < 2) {
+	// 最初の生成と、検証に落ちたときの再生成 (MAX_ATTEMPTS - 1 回まで)
+	while (attempts < MAX_ATTEMPTS) {
 		attempts += 1
 		const result = await callModel({ system, messages })
 		if (result.usage) usage.push(result.usage)

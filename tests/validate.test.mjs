@@ -113,6 +113,14 @@ test('禁止表現: 文脈で誤検出しない例', () => {
 	assert.deepEqual(banned('効果を保証するものではありません'), [])
 	assert.deepEqual(banned('痛みが治らない場合は医師に相談しましょう'), [])
 	assert.deepEqual(banned('持病がある方は、運動を始める前に医師に相談してください'), [])
+	// 読者への注意喚起として強い宣伝文句を引用している文 (2026-11-22 の生成が落ちた実例)
+	assert.deepEqual(banned('- 「これだけで」「絶対」など、効果を言い切りすぎていないか'), [])
+	assert.deepEqual(banned('- 効果を保証するような強い言い切りばかりになっていないか（体の変化には個人差があるのが前提）'), [])
+	assert.deepEqual(banned('「飲むだけで痩せる」とうたう商品には注意しましょう'), [])
+	assert.deepEqual(banned('「必ず痩せる」という宣伝文句は疑ってかかりましょう'), [])
+	// 注意喚起の形をしていない断定は、引き続き違反
+	assert.deepEqual(banned('このやり方なら絶対に結果が出るので安心です'), ['absolutely'])
+	assert.deepEqual(banned('続ければ効果は保証されます'), ['guarantee'])
 	// 回数やセット数の数字、種目番号
 	assert.deepEqual(banned('10〜15回を3セット。No.10 のマシンを使います'), [])
 	assert.deepEqual(banned('2〜3か月続けて、重さを5kg上げてみましょう'), [])
