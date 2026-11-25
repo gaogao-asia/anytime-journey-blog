@@ -41,11 +41,13 @@ export async function generate(options) {
 	const url = postUrl(slug, env)
 	log(`${date.ymd} (${date.weekday}) テーマ: ${theme.label} / ネタ: ${topic ?? '(モデルが決める)'} / slug: ${slug}`)
 
+	const rules = loadRules(root)
 	const ctx = {
-		rules: loadRules(root),
+		rules,
 		enums: loadSiteEnums(root),
 		otherPosts: posts,
 		requireComponents: theme.require_components ?? [],
+		minDiagrams: rules.diagram?.min_in_new_posts ?? 0,
 		postUrl: url
 	}
 	const system = [{ type: 'text', text: SYSTEM_PROMPT }]
