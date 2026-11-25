@@ -1,0 +1,253 @@
+---
+// 本文の途中に置くコンセプト図。画像ではなく HTML で描くので、文字はそのまま読めて検索にも載る。
+//   flow    : 手順や流れ (左から右、狭い画面では上から下)
+//   cycle   : 繰り返す循環
+//   compare : 2〜3 個の並列比較
+//   pyramid : 優先順位。items は土台 (いちばん大事なもの) から順に書く
+// 例: <Diagram type="flow" title="セッティングの流れ" items="重さを軽くする|シートを合わせる|座り方を整える" />
+// items の書き方は src/utils/diagram.mjs
+import { DIAGRAM_TYPES, parseDiagramItems } from '@/utils/diagram.mjs'
+
+interface Props {
+	type?: 'flow' | 'cycle' | 'compare' | 'pyramid'
+	title?: string
+	items?: string
+	caption?: string
+}
+const { title, items, caption } = Astro.props
+const type = DIAGRAM_TYPES.includes(Astro.props.type ?? '') ? Astro.props.type : 'flow'
+const list = parseDiagramItems(items)
+const count = list.length
+
+// flow: 4 個までは広い画面で横に並べる。それより多いと 1 個が狭くなるので縦のまま
+const flowRow = count <= 4
+
+// cycle: 円周上の位置 (%)。12 時の位置から時計回り
+const RADIUS = 37
+const angleOf = (index: number) => ((index / count) * 360 - 90) * (Math.PI / 180)
+const nodes = list.map((item, index) => ({
+	...item,
+	left: 50 + RADIUS * Math.cos(angleOf(index)),
+	top: 50 + RADIUS * Math.sin(angleOf(index))
+}))
+// 項目と項目の中間に置く矢じり (進行方向を向ける)
+const arrows = list.map((_, index) => {
+	const angle = angleOf(index + 0.5)
+	return {
+		x: 50 + RADIUS * Math.cos(angle),
+		y: 50 + RADIUS * Math.sin(angle),
+		rotate: (angle * 180) / Math.PI + 180
+	}
+})
+const cycleHasDetail = list.some((item) => item.detail)
+
+// pyramid: 土台を 100% として、上に行くほど狭くする
+const pyramidWidth = (index: number) => (count <= 1 ? 100 : 100 - (index / (count - 1)) * 42)
+
+const compareTone = [
+	'border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-700/60',
+	'border-accent/40 bg-accent/10 dark:bg-accent/20',
+	'border-teal-500/40 bg-teal-500/10 dark:bg-teal-400/20'
+]
+---
+
+{
+	count > 0 && (
+		<figure
+			class='diagram not-prose my-8 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800/60 sm:p-5'
+			data-diagram={type}
+		>
+			{title && (
+				<figcaption class='mb-4 flex items-center gap-2 text-base font-bold leading-snug'>
+					<span class='shrink-0 rounded bg-accent px-1.5 py-0.5 text-[11px] font-bold leading-none text-white'>
+						図解
+					</span>
+					<span class='min-w-0'>{title}</span>
+				</figcaption>
+			)}
+
+			{type === 'flow' && (
+				<ol
+					class:list={[
+						'm-0 flex list-none flex-col gap-1 p-0',
+						flowRow && 'sm:flex-row sm:items-stretch'
+					]}
+				>
+					{list.map((item, index) => (
+						<>
+							{index > 0 && (
+								<li
+									aria-hidden='true'
+									class:list={[
+										'flex items-center justify-center text-xl font-bold leading-none text-accent',
+										flowRow && 'sm:px-0.5'
+									]}
+								>
+									<span class:list={[flowRow && 'sm:hidden']}>↓</span>
+									<span class:list={['hidden', flowRow && 'sm:inline']}>→</span>
+								</li>
+							)}
+							<li class='flex min-w-0 flex-1 items-start gap-3 rounded-lg border border-accent/30 bg-accent/5 p-3 dark:bg-accent/10'>
+								<span class='flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-white'>
+									{index + 1}
+								</span>
+								<div class='min-w-0'>
+									<p class='m-0 text-sm font-bold leading-snug sm:text-base'>{item.label}</p>
+									{item.detail && (
+										<p class='m-0 mt-1 text-xs leading-relaxed text-gray-600 dark:text-gray-300 sm:text-sm'>
+											{item.detail}
+										</p>
+									)}
+								</div>
+							</li>
+						</>
+					))}
+				</ol>
+			)}
+
+			{type === 'cycle' && (
+				<div>
+					<div class='relative mx-auto aspect-square w-full max-w-[22rem]'>
+						<svg
+							viewBox='0 0 100 100'
+							class='absolute inset-0 h-full w-full text-accent'
+							aria-hidden='true'
+						>
+							<circle
+								cx='50'
+								cy='50'
+								r={RADIUS}
+								fill='none'
+								stroke='currentColor'
+								stroke-width='0.8'
+								stroke-dasharray='2 1.6'
+								opacity='0.55'
+							/>
+							{arrows.map((arrow) => (
+								<polygon
+									points='-2.6,2 0,-2.6 2.6,2'
+									fill='currentColor'
+									transform={`translate(${arrow.x.toFixed(2)} ${arrow.y.toFixed(
+										2
+									)}) rotate(${arrow.rotate.toFixed(1)})`}
+								/>
+							))}
+						</svg>
+						<p class='absolute left-1/2 top-1/2 m-0 -translate-x-1/2 -translate-y-1/2 text-center text-xs font-bold text-gray-500 dark:text-gray-400'>
+							<span class='block text-2xl leading-none text-accent' aria-hidden='true'>
+								↻
+							</span>
+							くり返す
+						</p>
+						<ol class='m-0 list-none p-0'>
+							{nodes.map((node, index) => (
+								<li
+									class='absolute flex w-[31%] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 rounded-lg border border-accent/40 bg-white px-1.5 py-2 text-center shadow-sm dark:bg-gray-800'
+									style={`left:${node.left.toFixed(2)}%;top:${node.top.toFixed(2)}%`}
+								>
+									<span class='flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[11px] font-bold leading-none text-white'>
+										{index + 1}
+									</span>
+									<span class='text-xs font-bold leading-tight sm:text-sm'>{node.label}</span>
+								</li>
+							))}
+						</ol>
+					</div>
+					{cycleHasDetail && (
+						<ol class='m-0 mt-4 flex list-none flex-col gap-1.5 p-0'>
+							{list.map((item, index) => (
+								<li class='flex items-start gap-2 text-xs leading-relaxed sm:text-sm'>
+									<span class='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold leading-none text-white'>
+										{index + 1}
+									</span>
+									<span class='min-w-0'>
+										<span class='font-bold'>{item.label}</span>
+										{item.detail && (
+											<span class='text-gray-600 dark:text-gray-300'>：{item.detail}</span>
+										)}
+									</span>
+								</li>
+							))}
+						</ol>
+					)}
+				</div>
+			)}
+
+			{type === 'compare' && (
+				<ul
+					class:list={[
+						'm-0 grid list-none gap-3 p-0',
+						count === 2 ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'
+					]}
+				>
+					{list.map((item, index) => (
+						<li class='flex min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700'>
+							<p
+								class:list={[
+									'm-0 border-b px-3 py-2 text-center text-sm font-bold leading-snug sm:text-base',
+									compareTone[index % compareTone.length]
+								]}
+							>
+								{item.label}
+							</p>
+							{item.points.length > 1 ? (
+								<ul class='m-0 flex list-none flex-col gap-1.5 p-3'>
+									{item.points.map((point) => (
+										<li class='flex items-start gap-1.5 text-xs leading-relaxed sm:text-sm'>
+											<span
+												class='mt-[0.45em] h-1.5 w-1.5 shrink-0 rounded-full bg-accent'
+												aria-hidden='true'
+											/>
+											<span class='min-w-0'>{point}</span>
+										</li>
+									))}
+								</ul>
+							) : (
+								item.detail && (
+									<p class='m-0 p-3 text-xs leading-relaxed sm:text-sm'>{item.detail}</p>
+								)
+							)}
+						</li>
+					))}
+				</ul>
+			)}
+
+			{type === 'pyramid' && (
+				<div>
+					<ol class='m-0 flex list-none flex-col-reverse items-center gap-1.5 p-0'>
+						{list.map((item, index) => (
+							<li
+								class:list={[
+									'flex min-w-0 items-start gap-2 rounded-lg border border-accent/40 px-3 py-2',
+									index === 0 ? 'bg-accent/20 dark:bg-accent/30' : 'bg-accent/5 dark:bg-accent/10'
+								]}
+								style={`width:${pyramidWidth(index).toFixed(1)}%`}
+							>
+								<span class='flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold leading-none text-white'>
+									{index + 1}
+								</span>
+								<div class='min-w-0'>
+									<p class='m-0 text-sm font-bold leading-snug sm:text-base'>{item.label}</p>
+									{item.detail && (
+										<p class='m-0 mt-0.5 text-xs leading-relaxed text-gray-600 dark:text-gray-300 sm:text-sm'>
+											{item.detail}
+										</p>
+									)}
+								</div>
+							</li>
+						))}
+					</ol>
+					<p class='m-0 mt-2 text-center text-[11px] font-bold text-gray-500 dark:text-gray-400'>
+						▲ 下の段 (番号が小さい) ほど優先
+					</p>
+				</div>
+			)}
+
+			{caption && (
+				<p class='m-0 mt-3 text-xs leading-relaxed text-gray-600 dark:text-gray-300 sm:text-sm'>
+					{caption}
+				</p>
+			)}
+		</figure>
+	)
+}

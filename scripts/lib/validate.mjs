@@ -1,6 +1,7 @@
 // 記事・X 投稿文・note 原稿の検証。エラーメッセージの配列を返す (空なら合格)
 import { SLUG_PATTERN, normalizeTitle } from './posts.mjs'
 import { normalizeHashtags, weightedLength, composeTweet } from './x.mjs'
+import { parseDiagramItems } from '../../src/utils/diagram.mjs'
 
 const URL_PATTERN = /https?:\/\/[^\s)"'<>\]]+/g
 
@@ -74,7 +75,61 @@ export function validateFrontmatter(slug, data, { rules, enums }) {
 	return errors
 }
 
-export function validateBody(body, { frontmatter, rules, enums, requireComponents = [] }) {
+/** <Diagram> の属性と項目の検証。崩れた図がそのまま公開されないよう、数と長さを決めておく */
+export function validateDiagrams(source, diagram, { minCount = 0 } = {}) {
+	if (!diagram) return []
+	const errors = []
+	const tags = [...source.matchAll(/<Diagram\b([^>]*)>/g)]
+	if (source.includes('</Diagram>') || tags.some(([tag]) => !tag.endsWith('/>'))) {
+		errors.push('図解: <Diagram ... /> は中身を持たない 1 つのタグで書いてください')
+	}
+	if (tags.length < minCount) {
+		errors.push(`図解: <Diagram> を ${minCount} 個以上入れてください (本文の途中に、内容の理解を助ける図を置く)`)
+	}
+	if (tags.length > diagram.max) errors.push(`図解: <Diagram> は ${diagram.max} 個までです (${tags.length} 個)`)
+
+	const typeNames = Object.keys(diagram.types)
+	tags.forEach(([, attrText], index) => {
+		const label = `図解 ${index + 1}`
+		const attrs = {}
+		for (const [, name, double, single] of attrText.matchAll(/([A-Za-z]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)) {
+			attrs[name] = (double ?? single).trim()
+		}
+		const spec = diagram.types[attrs.type]
+		if (!spec) {
+			errors.push(`${label}: type="${attrs.type ?? ''}" は使えません (${typeNames.join(' / ')})`)
+			return
+		}
+		const title = attrs.title ?? ''
+		if (!title) errors.push(`${label}: title を書いてください`)
+		else if (charCount(title) > diagram.title_max) errors.push(`${label}: title が ${charCount(title)} 字です (上限 ${diagram.title_max} 字)`)
+		if (charCount(attrs.caption ?? '') > diagram.caption_max) {
+			errors.push(`${label}: caption が ${charCount(attrs.caption)} 字です (上限 ${diagram.caption_max} 字)`)
+		}
+
+		const items = parseDiagramItems(attrs.items)
+		if (items.length < spec.min || items.length > spec.max) {
+			errors.push(`${label}: ${attrs.type} の項目は ${spec.min}〜${spec.max} 個です (${items.length} 個)`)
+		}
+		const labelMax = spec.label_max ?? diagram.label_max
+		const detailMax = spec.detail_max ?? diagram.detail_max
+		for (const item of items) {
+			if (!item.label) errors.push(`${label}: ラベルが空の項目があります`)
+			else if (charCount(item.label) > labelMax) {
+				errors.push(`${label}: ラベル「${item.label}」が ${charCount(item.label)} 字です (上限 ${labelMax} 字)`)
+			}
+			if (charCount(item.detail) > detailMax) {
+				errors.push(`${label}: 「${item.label}」の補足が ${charCount(item.detail)} 字です (上限 ${detailMax} 字)`)
+			}
+			if (item.points.length > diagram.points_max) {
+				errors.push(`${label}: 「${item.label}」の補足は ／ 区切りで ${diagram.points_max} 点までです`)
+			}
+		}
+	})
+	return errors
+}
+
+export function validateBody(body, { frontmatter, rules, enums, requireComponents = [], minDiagrams = 0 }) {
 	const errors = []
 	const { limits, mdx, links } = rules
 	const source = stripCode(body)
@@ -120,6 +175,7 @@ export function validateBody(body, { frontmatter, rules, enums, requireComponent
 	for (const name of requireComponents) {
 		if (!counts[name]) errors.push(`本文: <${name}> を 1 つ入れてください`)
 	}
+	errors.push(...validateDiagrams(source, rules.diagram, { minCount: minDiagrams }))
 
 	for (const [, target] of source.matchAll(/\]\(\s*<?([^)\s>]+)/g)) {
 		if (!/^(https?:\/\/|\/(?!\/)|#)/.test(target)) errors.push(`本文: リンク先 "${target}" は使えません`)

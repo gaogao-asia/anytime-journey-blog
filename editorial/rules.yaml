@@ -20,11 +20,29 @@ limits:
   note_max: 1500
 
 mdx:
-  allowed_components: [AppCta, GymCta, Talk, TalkCta]
+  allowed_components: [AppCta, GymCta, Talk, TalkCta, Diagram]
   talk_who: [kenta, misaki]
   # AppCta と TalkCta を合わせた本文中のアプリ導線の上限
   max_app_cta: 1
   forbidden_html: [script, iframe, style, object, embed, form, input, link, meta, base, frame, svg, img, video, audio]
+
+# コンセプト図 <Diagram>。items の書き方は src/utils/diagram.mjs
+diagram:
+  # 新しく生成する記事に入れる数。公開済みの記事には min を求めない (scripts/lib/generate.mjs が渡す)
+  min_in_new_posts: 1
+  max: 3
+  title_max: 40
+  caption_max: 80
+  label_max: 16
+  detail_max: 40
+  # 補足を ／ で区切ったときの点の数 (compare)
+  points_max: 4
+  # 種類ごとの項目数と、種類ごとに上書きする上限
+  types:
+    flow: { min: 3, max: 6 }
+    cycle: { min: 3, max: 5, label_max: 10 }
+    compare: { min: 2, max: 3, detail_max: 70 }
+    pyramid: { min: 3, max: 5, label_max: 12, detail_max: 28 }
 
 links:
   # 本文に書いてよいリンク先 (サブドメインを含む)。アフィリエイトのホストは src/utils/affiliate.ts

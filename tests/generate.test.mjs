@@ -227,3 +227,12 @@ test('公開待ち: 200 になるまで待ち、時間切れなら投稿しな�
 	}
 	assert.equal(await waitForUrl('https://e.com/', { timeoutMs: 5, intervalMs: 10, fetchImpl: failing, sleep }), false)
 })
+
+test('プロンプトと検証ルールの図解の決まりが食い違っていない', async () => {
+	const { DIAGRAM_TYPES } = await import('../src/utils/diagram.mjs')
+	const { SYSTEM_PROMPT } = await import('../scripts/lib/prompt.mjs')
+	const { rules } = await import('./helpers.mjs')
+	assert.deepEqual(Object.keys(rules.diagram.types).sort(), [...DIAGRAM_TYPES].sort())
+	for (const type of DIAGRAM_TYPES) assert.ok(SYSTEM_PROMPT.includes(`- ${type}:`), `${type} の説明がプロンプトにありません`)
+	assert.ok(rules.mdx.allowed_components.includes('Diagram'))
+})

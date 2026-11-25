@@ -11,6 +11,7 @@ import AppCta from '@/components/mdx/AppCta'
 import GymCta from '@/components/mdx/GymCta'
 import Talk from '@/components/mdx/Talk'
 import TalkCta from '@/components/mdx/TalkCta'
+import Diagram from '@/components/mdx/Diagram'
 import CtaEnd from '@/components/cta/CtaEnd'
 import Disqus from '@/components/Disqus'
 import { disqusConfig } from '@/data/disqus.config'
@@ -43,7 +44,7 @@ const { Content, headings, remarkPluginFrontmatter } = await post.render()
 const disqusEnabled = disqusConfig.enabled
 
 // MDX 本文で import 無しに使えるコンポーネント
-const mdxComponents = { pre: Code, SButton, AppCta, GymCta, Talk, TalkCta }
+const mdxComponents = { pre: Code, SButton, AppCta, GymCta, Talk, TalkCta, Diagram }
 
 // frontmatter の付け忘れに備え、本文にアフィリエイトリンクがあれば PR 表記を出す
 const affiliate = post.data.affiliate || hasAffiliateLink(post.body)
